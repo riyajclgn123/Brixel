@@ -1,7 +1,7 @@
 node_modules/
-.env
+backend/.env
 __pycache__/
 *.pyc
 .DS_Store
 venv/
-key-api.json
+backend/key-api.json
