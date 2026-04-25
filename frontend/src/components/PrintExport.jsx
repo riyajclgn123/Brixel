@@ -89,4 +89,4 @@ const PrintExport = ({ capture }) => {
   )
 }
 
-export default PrintExport
+export default PrintExport 
