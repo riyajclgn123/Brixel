@@ -62,7 +62,7 @@ export default function Dashboard() {
           {selected ? (
             <div className="flex flex-col gap-5 animate-fadeUp">
 
-              {/* Assignment alert */}
+              {/* Assignment alert *
               {selected.is_assignment && (
                 <div className="flex items-center gap-3 px-4 py-3 rounded-xl
                                 bg-amber-500/10 border border-amber-500/30

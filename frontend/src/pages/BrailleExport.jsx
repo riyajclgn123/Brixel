@@ -1,3 +1,4 @@
+import { textToBraille } from '../utils/braille'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import BraillePanel from '../components/BraillePanel'
@@ -6,6 +7,14 @@ import PrintExport from '../components/PrintExport'
 const BrailleExport = () => {
   const [captures, setCaptures] = useState([])
   const [selected, setSelected] = useState(null)
+  const selectedWithBraille = selected
+  ? {
+      ...selected,
+      braille_unicode:
+        selected.braille_unicode ||
+        textToBraille(selected.raw_text)
+    }
+  : null;
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
 
@@ -25,7 +34,7 @@ const BrailleExport = () => {
 
   const filtered = captures.filter(c => {
     if (filter === 'assignments') return c.is_assignment === true
-    if (filter === 'braille') return !!c.braille_unicode
+    if (filter === 'braille') return !!(c.braille_unicode || c.raw_text)
     return true
   })
 
@@ -109,7 +118,7 @@ const BrailleExport = () => {
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-widest">
               Output
             </h2>
-            <BraillePanel capture={selected} />
+            <BraillePanel capture={selectedWithBraille} />
             {selected && <PrintExport capture={selected} />}
           </div>
         </div>
