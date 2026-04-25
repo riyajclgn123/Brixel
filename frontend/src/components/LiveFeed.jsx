@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 
 const BADGE = {
@@ -13,9 +13,44 @@ function fmtTime(iso) {
   return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+// ── Text-to-Speech ──
+function speakText(text) {
+  if (!text || !window.speechSynthesis) return;
+
+  window.speechSynthesis.cancel(); // stop any ongoing speech
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate   = 0.9;
+  utterance.pitch  = 1;
+  utterance.volume = 1;
+
+  // Try to pick a clear voice (works on Chrome/Edge/Safari)
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v =>
+    v.name.includes("Google US English") ||
+    v.name.includes("Samantha") ||
+    v.name.includes("Karen") ||
+    v.lang === "en-US"
+  );
+  if (preferred) utterance.voice = preferred;
+
+  window.speechSynthesis.speak(utterance);
+}
+
 export default function LiveFeed({ onSelect, selected }) {
   const [captures, setCaptures] = useState([]);
   const [loading, setLoading]   = useState(true);
+  const [speaking, setSpeaking] = useState(false);
+
+  // Speak with visual feedback
+  const handleSpeak = useCallback((text) => {
+    if (!text) return;
+    setSpeaking(true);
+    speakText(text);
+    // Reset icon after estimated duration
+    const duration = Math.max(2000, text.length * 60);
+    setTimeout(() => setSpeaking(false), duration);
+  }, []);
 
   // ── Initial load ──
   useEffect(() => {
@@ -34,7 +69,7 @@ export default function LiveFeed({ onSelect, selected }) {
       });
   }, []);
 
-  // ── Real-time subscription ──
+  // ── Real-time subscription — auto-speak on new capture ──
   useEffect(() => {
     const channel = supabase
       .channel("captures-live")
@@ -43,11 +78,13 @@ export default function LiveFeed({ onSelect, selected }) {
       }, (payload) => {
         setCaptures(prev => [payload.new, ...prev]);
         onSelect?.(payload.new);
+        // 🔊 Auto-speak new capture
+        handleSpeak(payload.new.raw_text);
       })
       .subscribe();
 
     return () => supabase.removeChannel(channel);
-  }, []);
+  }, [handleSpeak]);
 
   // ── Loading ──
   if (loading) return (
@@ -121,6 +158,21 @@ export default function LiveFeed({ onSelect, selected }) {
             <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">
               {c.raw_text || "No text extracted"}
             </p>
+
+            {/* 🔊 Read Aloud Button */}
+            {c.raw_text && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation(); // don't trigger card click
+                  handleSpeak(c.raw_text);
+                }}
+                className="mt-2 flex items-center gap-1.5 text-[10px] font-semibold
+                           text-[#0fd6a0] bg-[#0fd6a0]/10 border border-[#0fd6a0]/20
+                           rounded-md px-2 py-1 hover:bg-[#0fd6a0]/20 transition-colors"
+              >
+                {speaking ? "🔊 Speaking..." : "🔊 Read Aloud"}
+              </button>
+            )}
 
             {/* Assignment pill */}
             {c.is_assignment && (
