@@ -140,7 +140,7 @@ uvicorn backend:app --reload
 
 - Contracted (Grade 2) Braille translation with a library such as liblouis, and true ASCII `.brf` output for embossers.
 - Fill in subject detection and assignment flagging during the pipeline so the dashboard filters are populated automatically.
-- Move hard-coded configuration into environment variables everywhere and tighten the open row-level security policies.
+- Tighten the open row-level security policies in Supabase.
 
 ## Team
 
