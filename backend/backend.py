@@ -16,8 +16,8 @@ app.add_middleware(
 )
 
 # ===== SUPABASE CONFIG =====
-SUPABASE_URL = "https://REDACTED.supabase.co"
-SUPABASE_KEY = "REDACTED"
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
